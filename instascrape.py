@@ -5,26 +5,25 @@ import datetime
 import wget
 
 tagToScrape = 'selfie'
-pagesToScrape = 300; # one page has about 60 items
+pagesToScrape = 300 # one page has about 60 items
 
-isExportImg = True 
-isExportMeta = True # save all post related data as json
+exportImg = True 
+exportMeta = True # save all post related data as json
 
-isExportRawData = True # helpful for debugging
-isExportGraphQl = True # same same
+exportRawData = True # helpful for debugging
+exportGraphQl = True # same same
 
 nextPageSlug = ''
 imageCount = 0
 
 for page in range(pagesToScrape):
         
-        
-    print('\n \n \n Allright, requesting graphQl for ' + str(page) + '...')
+    print('\n\n\nAll right, requesting graphQl for page number ' + str(page + 1) + '...')
     r = requests.get('https://www.instagram.com/explore/tags/' + tagToScrape +'/?__a=1' + nextPageSlug)
     soup = BeautifulSoup(r.text, 'lxml')
     rawData = soup.find('p').contents[0]
 
-    if isExportRawData is True:
+    if exportRawData:
 
         filename = 'tag-' + str(tagToScrape) + datetime.datetime.now().strftime('-date-%d-%m-%Y-time-%H-%M-%S')
         source = open('./_pageData/' + filename +'.txt', 'w')
@@ -33,7 +32,7 @@ for page in range(pagesToScrape):
 
     data = json.loads(rawData)
 
-    if isExportGraphQl is True:
+    if exportGraphQl:
         
         filename = 'tag-' + str(tagToScrape) + datetime.datetime.now().strftime('-date-%d-%m-%Y-time-%H-%M-%S')
         source = open('./_pageData/' + filename +'.json', 'w')
@@ -43,15 +42,15 @@ for page in range(pagesToScrape):
     for post in data['graphql']['hashtag']['edge_hashtag_to_media']['edges']:
         
         id = post['node']['id']
-        print('\nScraping on page ' + str(page) + '. Fetching ' + tagToScrape + ' number ' + str(imageCount) + " with image-id " + str(id))
+        print('\nFetching ' + tagToScrape + ' number ' + str(imageCount) + " with image-id " + str(id) + ' from page ' + str(page + 1) + '...')
 
-        if isExportImg is True:
+        if exportImg:
 
             print('Downloading...')
             image_src = post['node']['thumbnail_resources'][4]['src']
-            wget.download(image_src, './_img/'+ str(id) +'_img.jpg',)
+            wget.download(image_src, './_img/'+ str(id) +'_img.jpg')
 
-        if isExportMeta is True:
+        if exportMeta:
 
             print('\nSaving Metadata...')
             meta = post['node']
@@ -62,6 +61,4 @@ for page in range(pagesToScrape):
         imageCount = imageCount + 1
 
     nextPageSlug = '&max_id=' + data['graphql']['hashtag']['edge_hashtag_to_media']['page_info']['end_cursor']
-
-
 
