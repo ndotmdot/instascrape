@@ -7,22 +7,24 @@ import wget
 tagToScrape = 'selfie'
 pagesToScrape = 300; # one page has about 60 items
 
-isImgExport = True 
-isMetaExport = True # save all post related data as json
+isExportImg = True 
+isExportMeta = True # save all post related data as json
 
-isRawDataExport = True # helpful for debugging
-isGraphQlExport = False # same same
+isExportRawData = True # helpful for debugging
+isExportGraphQl = True # same same
 
 nextPageSlug = ''
 imageCount = 0
 
 for page in range(pagesToScrape):
-
+        
+        
+    print('\n \n \n Allright, requesting graphQl for ' + str(page) + '...')
     r = requests.get('https://www.instagram.com/explore/tags/' + tagToScrape +'/?__a=1' + nextPageSlug)
     soup = BeautifulSoup(r.text, 'lxml')
     rawData = soup.find('p').contents[0]
 
-    if isRawDataExport is True:
+    if isExportRawData is True:
 
         filename = 'tag-' + str(tagToScrape) + datetime.datetime.now().strftime('-date-%d-%m-%Y-time-%H-%M-%S')
         source = open('./_pageData/' + filename +'.txt', 'w')
@@ -31,9 +33,9 @@ for page in range(pagesToScrape):
 
     data = json.loads(rawData)
 
-    if isGraphQlExport is True:
+    if isExportGraphQl is True:
         
-        filename = 'tag-' + str(tag) + datetime.datetime.now().strftime('-date-%d-%m-%Y-time-%H-%M-%S')
+        filename = 'tag-' + str(tagToScrape) + datetime.datetime.now().strftime('-date-%d-%m-%Y-time-%H-%M-%S')
         source = open('./_pageData/' + filename +'.json', 'w')
         source.seek(0)
         source.write(str(json.dumps(data, sort_keys=True, indent=4)))
@@ -43,13 +45,13 @@ for page in range(pagesToScrape):
         id = post['node']['id']
         print('\nScraping on page ' + str(page) + '. Fetching ' + tagToScrape + ' number ' + str(imageCount) + " with image-id " + str(id))
 
-        if isImgExport is True:
+        if isExportImg is True:
 
             print('Downloading...')
             image_src = post['node']['thumbnail_resources'][4]['src']
             wget.download(image_src, './_img/'+ str(id) +'_img.jpg',)
 
-        if isMetaExport is True:
+        if isExportMeta is True:
 
             print('\nSaving Metadata...')
             meta = post['node']
