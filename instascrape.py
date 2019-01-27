@@ -6,7 +6,7 @@ import datetime
 import wget
 
 tagToScrape = 'selfie'
-pagesToScrape = 300 # one page has about 60 items
+pagesToScrape = 220 # one page has about 60 items
 
 exportImg = True 
 exportMeta = True # save all post related data as json
@@ -46,7 +46,7 @@ for page in range(pagesToScrape):
     validRawData = False
     validGraphQl = False
 
-    print('Requesting graphQl for page number ' + str(page + 1) + '...\nfrom url: ' + url + '\n')
+    print('\nExtracting graphQl from page number ' + str(page + 1) + '...\nPage url: ' + url + '\n')
 
     while validSoup is False or validRawData is False or validGraphQl is False:
         r = requests.get(url, timeout=20)
@@ -56,7 +56,7 @@ for page in range(pagesToScrape):
             validSoup = True
             print("Valid soup: " + str(validSoup))
         else:
-            print("Error: Valid soup: " + str(validSoup))
+            print("Warning: Valid soup: " + str(validSoup))
         if exportSoup:
             exportText(soup,'-' + str(tagToScrape ) + '-Soup', 'txt', './_pageData/')
 
@@ -65,7 +65,7 @@ for page in range(pagesToScrape):
             validRawData = True
             print("Valid raw data: " + str(validRawData))
         else:
-            print("Error: Valid raw data: " + str(validRawData))
+            print("Warning: Valid raw data: " + str(validRawData))
             print("Warning: Fixing data. Some data will be lost.")
             rawData = str(soup.find('p').contents[0]) + '"}}]}}}]}}}}'
             validRawData = True
@@ -78,7 +78,7 @@ for page in range(pagesToScrape):
             validGraphQl = True
             print("Valid graphQl: " + str(validGraphQl))
         else:
-            print("Error: Valid graphQl: " + str(validGraphQl))
+            print("Warning: Valid graphQl: " + str(validGraphQl))
             waitFor(30)
         if exportGraphQl:     
             exportText(str(json.dumps(data, sort_keys=True, indent=4)),'-' + str(tagToScrape ) + '-GraphQl', 'json', './_pageData/')
@@ -104,8 +104,7 @@ for page in range(pagesToScrape):
                 exportText(str(json.dumps(meta, sort_keys=True, indent=4)),'-' + str(tagToScrape ) + '-meta', 'json', './_meta/')
 
             else:
-                print('Warning: graphQl was damaged, can not save data...')
-           
+                print('Warning: graphQl was damaged, can not save data...')       
 
         imageCount = imageCount + 1
 
