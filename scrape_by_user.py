@@ -5,11 +5,11 @@ import json
 import datetime
 import wget
 
-tagToScrape = 'selfie'
-pagesToScrape = 220 # one page has about 60 items
+user = 'estudiopalma'
+pagesToScrape = 20 # one page has about 60 items
 
 exportImg = True 
-exportMeta = True # save all post related data as json
+exportMeta = False # save all post related data as json
 
 exportSoup = False # helpful for debugging
 exportRawData = False # same same
@@ -41,7 +41,7 @@ for page in range(pagesToScrape):
     print('Total pages scraped:  ' + str(page) + ' of ' + str(pagesToScrape))
     print('Broken page requests:  ' + str(brokenPageRequests))
 
-    url = 'https://www.instagram.com/explore/tags/' + tagToScrape + '/?__a=1' + nextPageSlug
+    url = 'https://www.instagram.com/' + user + '/?__a=1' + nextPageSlug
     validSoup = False
     validRawData = False
     validGraphQl = False
@@ -58,7 +58,7 @@ for page in range(pagesToScrape):
         else:
             print("Warning: Valid soup: " + str(validSoup))
         if exportSoup:
-            exportText(soup,'-' + str(tagToScrape ) + '-Soup', 'txt', './_pageData/')
+            exportText(soup,'-' + str(user ) + '-Soup', 'txt', './_pageData/')
 
         rawData = soup.find('p').contents[0]
         if str(rawData).startswith('{') and str(rawData).endswith('}'):
@@ -71,7 +71,7 @@ for page in range(pagesToScrape):
             validRawData = True
             brokenPageRequests = brokenPageRequests + 1
         if exportRawData:
-            exportText(rawData,'-' + str(tagToScrape ) + '-RawData', 'txt', './_pageData/')
+            exportText(rawData,'-' + str(user ) + '-RawData', 'txt', './_pageData/')
 
         data = json.loads(rawData)
         if 'graphql' in data:
@@ -81,12 +81,11 @@ for page in range(pagesToScrape):
             print("Warning: Valid graphQl: " + str(validGraphQl))
             waitFor(30)
         if exportGraphQl:     
-            exportText(str(json.dumps(data, sort_keys=True, indent=4)),'-' + str(tagToScrape ) + '-GraphQl', 'json', './_pageData/')
+            exportText(str(json.dumps(data, sort_keys=True, indent=4)),'-' + str(user ) + '-GraphQl', 'json', './_pageData/')
 
-
-    for post in data['graphql']['hashtag']['edge_hashtag_to_media']['edges']:    
+    for post in data['graphql']['user']['edge_owner_to_timeline_media']['edges']:    
         id = post['node']['id']
-        print('\nFetching #' + tagToScrape + ' number ' + str(imageCount) + ' from page ' + str(page + 1) + '...')
+        print('\nFetching #' + user + ' number ' + str(imageCount) + ' from page ' + str(page + 1) + '...')
 
         if exportImg:
             if 'thumbnail_resources' in post['node']:
@@ -101,13 +100,17 @@ for page in range(pagesToScrape):
             if 'thumbnail_resources' in post['node']:
                 print('\nSaving Metadata...')
                 meta = post['node']
-                exportText(str(json.dumps(meta, sort_keys=True, indent=4)),'-' + str(tagToScrape ) + '-meta', 'json', './_meta/')
+                exportText(str(json.dumps(meta, sort_keys=True, indent=4)),'-' + str(user ) + '-meta', 'json', './_meta/')
 
             else:
                 print('Warning: graphQl was damaged, can not save data...')       
 
         imageCount = imageCount + 1
+        has_next_page = data['graphql']['user']['edge_owner_to_timeline_media']['page_info']['has_next_page']
+    
+    print('Has next page: ' + str(has_next_page))
+    if has_next_page == False:
+        break
 
-    nextPageSlug = '&max_id=' + data['graphql']['hashtag']['edge_hashtag_to_media']['page_info']['end_cursor']
-
+    nextPageSlug = '&max_id=' + data['graphql']['user']['edge_owner_to_timeline_media']['page_info']['end_cursor']
 
