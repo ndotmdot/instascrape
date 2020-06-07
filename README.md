@@ -22,6 +22,7 @@ python scrape_by_user.py
 
 ### Options:
 ```bash
+pagesToScrape = 20 # one page has about 60 items
 exportMeta = False # save all post related data as json
 exportSoup = False # helpful for debugging
 exportRawData = False # same same
